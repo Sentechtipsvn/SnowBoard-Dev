@@ -105,10 +105,10 @@ body.hide-labels .app-info { display: none !important; }
 #settingsBtn img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
 body.dock-active #settingsBtn, body.dock-active.delete-mode #settingsBtn { display: none !important; }
 
-/* [Fix] Di chuyển Thanh Dock xuống dưới bám sát thanh Home Bar */
+/* Thay đổi vị trí Thanh Dock xuống sát Home Bar */
 .dock-container { 
     position: fixed; 
-    bottom: calc(env(safe-area-inset-bottom, 12px) + 4px); 
+    bottom: calc(env(safe-area-inset-bottom, 12px) + 6px); 
     left: 50%; 
     transform: translateX(-50%); 
     width: 90%; 
@@ -217,6 +217,12 @@ input:checked + .slider:before { transform: translateX(20px); }
 @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
 
 .hide-for-screenshot {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Ẩn các icon con bên trong nhưng giữ nguyên background khung lưới/dock */
+body.hide-icons-for-screenshot .app-item {
     opacity: 0 !important;
     pointer-events: none !important;
 }
