@@ -1,3 +1,4 @@
+// script.js
 const ST_KEYS = {
     app: 'myAppList', name: 'myAppNames', dock: 'myDockApps', mark: 'effectMarkStyle',
     radius: 'effectRadiusStyle', dir: 'effectShadowDirection', blur: 'effectShadowBlur',
@@ -23,7 +24,8 @@ let audioCtx = null;
 let appDatabase = {}, socialData = { links: { email: '', social_follow: '', plugin_shortcut: '' } }, langData = {};
 const basePath = '.';
 
-const MAX_APPS = 12, MAX_DOCK_APPS = 3;
+// [Yêu Cầu 1] Cập nhật giới hạn ứng dụng từ 12 lên 24
+const MAX_APPS = 24, MAX_DOCK_APPS = 3;
 let isDeleteMode = false, isAddingDock = false, isFastRenameMode = false;
 let searchTimeout = null, currentSearchLimit = 12, currentLocalLimit = 12, currentStore = 'vn', currentQuery = '';
 let renameAppId = null;
@@ -31,7 +33,6 @@ let renameAppId = null;
 const grid = document.getElementById('appGrid'), dockArea = document.getElementById('dockArea'), drawerWrapper = document.getElementById('drawerWrapper'), drawerContent = document.getElementById('drawerContent'), mainAppContainer = document.getElementById('mainAppContainer');
 const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-// Hàm an toàn: Lấy element (tránh lỗi null)
 const $ = (id) => document.getElementById(id);
 
 async function resolveLanguage() {
@@ -46,7 +47,6 @@ async function resolveLanguage() {
         const enData = enRes.ok ? await enRes.json() : {};
         let targetData = {};
         if (exactLang !== 'en-US') {
-            // Đã sửa lỗi tên file: chuyển gạch ngang thành gạch chân nếu cần
             const targetFileName = exactLang.replace('-', '_');
             const targetRes = await fetch(`${basePath}/Language/${targetFileName}.json`);
             if (targetRes.ok) targetData = await targetRes.json();
@@ -173,6 +173,12 @@ function applyLanguage() {
     setSafeText('txtDockDisable', langData?.effects?.dock?.disable || 'Tắt Dock');
     setSafeText('saveDockBtn', langData?.effects?.dock?.save || 'Lưu cấu hình');
     
+    // [Yêu Cầu 5] Ngôn ngữ cho tính năng Lưu hình nền
+    setSafeText('lblScreenshotTitle', langData?.screenshot?.title || 'Lưu hình nền');
+    setSafeText('btnHideMain', langData?.screenshot?.hide_main || 'Ẩn Khung chính');
+    setSafeText('btnHideDock', langData?.screenshot?.hide_dock || 'Ẩn Dock');
+    setSafeText('btnHideAll', langData?.screenshot?.hide_all || 'Ẩn Toàn bộ');
+
     document.querySelectorAll('.lang-close').forEach(el => el.innerText = langData?.button?.close || 'Đóng');
     document.querySelectorAll('.lang-cancel').forEach(el => el.innerText = langData?.button?.cancel || 'Huỷ');
     
@@ -634,7 +640,6 @@ function initUI() {
 
     if($('btnDelete')) $('btnDelete').onclick = () => { closeDrawerSecure(); toggleDeleteMode(); };
     if($('btnReset')) $('btnReset').onclick = () => { 
-        // Dùng confirm thay thế để tránh lỗi
         if(confirm(langData?.messages?.reset_confirm || "Xoá sạch?")){ localStorage.clear(); location.reload(); }
     };
     if($('btnInfo')) $('btnInfo').onclick = () => { closeDrawerSecure(); $('infoModal')?.classList.add('active'); };
@@ -652,7 +657,24 @@ function initUI() {
         if(btn.id.includes('close') || btn.id.includes('Close')) btn.onclick = (e) => e.target.closest('.modal-overlay')?.classList.remove('active');
     });
 
-    // Modal chống sập (Dùng ?. để không lỗi)
+    // [Yêu Cầu 5] Xử lý sự kiện 3 nút chức năng "Lưu hình nền"
+    const applyScreenshotMode = (hideMain, hideDock) => {
+        $('settingsModal')?.classList.remove('active');
+        if (hideMain) $('mainAppContainer')?.classList.add('hide-for-screenshot');
+        if (hideDock) $('dockArea')?.classList.add('hide-for-screenshot');
+        
+        // Tự động khôi phục giao diện sau đúng 10 giây (10,000ms)
+        setTimeout(() => {
+            $('mainAppContainer')?.classList.remove('hide-for-screenshot');
+            $('dockArea')?.classList.remove('hide-for-screenshot');
+        }, 10000);
+    };
+
+    if($('btnHideMain')) $('btnHideMain').onclick = () => applyScreenshotMode(true, false);
+    if($('btnHideDock')) $('btnHideDock').onclick = () => applyScreenshotMode(false, true);
+    if($('btnHideAll')) $('btnHideAll').onclick = () => applyScreenshotMode(true, true);
+
+    // Modal chống sập
     $('closeOnboarding')?.addEventListener('click', () => $('onboardingModal')?.classList.remove('active'));
     $('renameCancelBtn')?.addEventListener('click', closeRenameModal);
     $('renameOkBtn')?.addEventListener('click', () => {
@@ -676,10 +698,8 @@ function initUI() {
         } catch(e) { alert(langData?.messages?.toast_error || "Có lỗi xảy ra!"); }
     });
 
-    // Export và Import
     if($('exportBtn')) $('exportBtn').onclick = () => {
         const data = { apps: getVals(ST_KEYS.app,[]), dock: getVals(ST_KEYS.dock,[]), names: getVals(ST_KEYS.name,{}), eff: { mark: localStorage.getItem(ST_KEYS.mark), rad: localStorage.getItem(ST_KEYS.radius), dir: localStorage.getItem(ST_KEYS.dir), blur: localStorage.getItem(ST_KEYS.blur), off: localStorage.getItem(ST_KEYS.offset), op: localStorage.getItem(ST_KEYS.opacity), dk: localStorage.getItem(ST_KEYS.dockStyle), st: localStorage.getItem(ST_KEYS.stroke), hl: localStorage.getItem(ST_KEYS.hideLab), bgDir: localStorage.getItem(ST_KEYS.bgDir), bgBlur: localStorage.getItem(ST_KEYS.bgBlur), bgOff: localStorage.getItem(ST_KEYS.bgOffset), bgOp: localStorage.getItem(ST_KEYS.bgOpacity), hp: localStorage.getItem(ST_KEYS.haptic), cMain: localStorage.getItem(ST_KEYS.cMain), cCont: localStorage.getItem(ST_KEYS.cCont), cDock: localStorage.getItem(ST_KEYS.cDock) }};
-        // Fallback copy
         const copyToClipboard = (text) => {
             const textArea = document.createElement('textarea');
             textArea.value = text; document.body.appendChild(textArea);
@@ -701,7 +721,6 @@ function initUI() {
         if($('importTextArea')) $('importTextArea').value = '';
     };
 
-    // Các nút save hiệu ứng
     if($('saveBgEffectBtn')) $('saveBgEffectBtn').onclick = () => {
         let activeDir = document.querySelector('.bg-dir-btn.active');
         if(activeDir) localStorage.setItem(ST_KEYS.bgDir, activeDir.dataset.dir);
@@ -766,10 +785,9 @@ function initUI() {
     renderGrid();
     
     const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-    if (!isStandalone) setTimeout(() => { $('onboardingModal')?.classList.add('active'); }, 3000); // Giảm còn 3 giây
+    if (!isStandalone) setTimeout(() => { $('onboardingModal')?.classList.add('active'); }, 3000);
 }
 
-// Khởi động
 Promise.all([
     fetch(basePath + '/db.json').then(res => res.json()).catch(() => ({})),
     fetch(basePath + '/system-app.json').then(res => res.json()).catch(() => ({})),
