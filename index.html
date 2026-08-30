@@ -76,17 +76,15 @@
         <button class="close-modal" id="openDockBtn"></button>
         <button class="close-modal" id="openLabelsBtn"></button>
         
-        <!-- [Yêu Cầu 5] Cụm chức năng "Lưu hình nền" -->
+        <!-- [Fix] Sửa bố cục "Lưu hình nền" thành hàng dọc giống các mục cài đặt phía trên -->
         <div style="margin-top: 14px; border-top: 1px solid rgba(150,150,150,0.2); padding-top: 14px;">
             <label id="lblScreenshotTitle" style="color: var(--color-channel-name); font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px; text-align: center;"></label>
-            <div style="display: flex; gap: 8px;">
-                <button id="btnHideMain" style="width: 100%; padding: 10px 5px; background: rgba(0,0,0,0.05); border: none; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; color: var(--color-channel-name);"></button>
-                <button id="btnHideDock" style="width: 100%; padding: 10px 5px; background: rgba(0,0,0,0.05); border: none; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; color: var(--color-channel-name);"></button>
-                <button id="btnHideAll" style="width: 100%; padding: 10px 5px; background: rgba(0,0,0,0.05); border: none; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; color: var(--color-channel-name);"></button>
-            </div>
+            <button class="close-modal" id="btnHideMain" style="margin-top: 8px; font-weight: normal; color: #0071e3;"></button>
+            <button class="close-modal" id="btnHideDock" style="margin-top: 8px; font-weight: normal; color: #0071e3;"></button>
+            <button class="close-modal" id="btnHideAll" style="margin-top: 8px; font-weight: 600; color: #ff3b30;"></button>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <div style="display: flex; gap: 10px; margin-top: 14px; border-top: 1px solid rgba(150,150,150,0.2); padding-top: 14px;">
             <button class="close-modal" id="exportBtn" style="margin-top: 0; background: rgba(0, 188, 212, 0.15); color: #00bcd4;"></button>
             <button class="close-modal" id="importBtn" style="margin-top: 0; background: rgba(52, 199, 89, 0.15); color: #34c759;"></button>
         </div>
