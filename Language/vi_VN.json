@@ -77,4 +77,7 @@
     "title": "Lưu hình nền",
     "hide_main": "Ẩn Khung chính",
     "hide_dock": "Ẩn Dock",
-    "hide_all": "Ẩn Toàn bộ"
+    "hide_icon": "Ẩn Icon",
+    "hide_all": "Ẩn Toàn bộ (10s)"
+  }
+}
