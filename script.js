@@ -130,7 +130,7 @@ function applyLanguage() {
     const btnInfoDetails = $('btnInfoDetails');
     if (btnInfoDetails) {
         btnInfoDetails.onclick = () => {
-            alert(langData?.dock_info?.app_version || "Phiên bản hiện tại");
+            alert(langData?.dock_info?.app_version || "Cập nhật ứng dụng...");
         };
     }
 
@@ -175,6 +175,7 @@ function applyLanguage() {
     setSafeText('lblScreenshotTitle', langData?.screenshot?.title || 'Lưu hình nền');
     setSafeText('btnHideMain', langData?.screenshot?.hide_main || 'Ẩn Khung chính');
     setSafeText('btnHideDock', langData?.screenshot?.hide_dock || 'Ẩn Dock');
+    setSafeText('btnHideIcon', langData?.screenshot?.hide_icon || 'Ẩn Icon');
     setSafeText('btnHideAll', langData?.screenshot?.hide_all || 'Ẩn Toàn bộ (10s)');
 
     document.querySelectorAll('.lang-close').forEach(el => el.innerText = langData?.button?.close || 'Đóng');
@@ -600,28 +601,27 @@ function initUI() {
     if($('bgShadowOffsetInput')) $('bgShadowOffsetInput').value = localStorage.getItem(ST_KEYS.bgOffset) || '30';
     if($('bgShadowOpacityInput')) $('bgShadowOpacityInput').value = localStorage.getItem(ST_KEYS.bgOpacity) || '8';
     
-    // [Fix] Gắn event click cho các nút hướng đổ bóng nền
+    // Đảm bảo event click gán trực tiếp cho độ chính xác cao nhất trên iOS
     let savedBgDir = localStorage.getItem(ST_KEYS.bgDir) || 'bottom';
     document.querySelectorAll('.bg-dir-btn').forEach(btn => { 
         if (btn.dataset.dir === savedBgDir) btn.classList.add('active'); 
         else btn.classList.remove('active'); 
         
-        btn.addEventListener('click', (e) => {
+        btn.onclick = (e) => {
             document.querySelectorAll('.bg-dir-btn').forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-        });
+        };
     });
 
-    // [Fix] Gắn event click cho các nút hướng đổ bóng Icon
     let savedDir = localStorage.getItem(ST_KEYS.dir) || 'bottom';
     document.querySelectorAll('.dir-btn:not(.bg-dir-btn)').forEach(btn => {
         if (btn.dataset.dir === savedDir) btn.classList.add('active');
         else btn.classList.remove('active');
 
-        btn.addEventListener('click', (e) => {
+        btn.onclick = (e) => {
             document.querySelectorAll('.dir-btn:not(.bg-dir-btn)').forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-        });
+        };
     });
 
     if($('colorMain')) $('colorMain').addEventListener('input', e => document.documentElement.style.setProperty('--bg-main', e.target.value));
@@ -671,24 +671,30 @@ function initUI() {
     if($('openDockBtn')) $('openDockBtn').onclick = () => { $('settingsModal')?.classList.remove('active'); openSettings('dockModal'); };
     if($('openLabelsBtn')) $('openLabelsBtn').onclick = () => { $('settingsModal')?.classList.remove('active'); openSettings('labelsModal'); };
     
-    // Đóng tất cả modal chung
     document.querySelectorAll('.close-modal').forEach(btn => { 
         if(btn.id.includes('close') || btn.id.includes('Close')) btn.onclick = (e) => e.target.closest('.modal-overlay')?.classList.remove('active');
     });
 
-    const applyScreenshotMode = (hideMain, hideDock) => {
+    const applyScreenshotMode = (hideMain, hideDock, hideIconsOnly = false) => {
         $('settingsModal')?.classList.remove('active');
-        if (hideMain) $('mainAppContainer')?.classList.add('hide-for-screenshot');
-        if (hideDock) $('dockArea')?.classList.add('hide-for-screenshot');
+        
+        if (hideIconsOnly) {
+            document.body.classList.add('hide-icons-for-screenshot');
+        } else {
+            if (hideMain) $('mainAppContainer')?.classList.add('hide-for-screenshot');
+            if (hideDock) $('dockArea')?.classList.add('hide-for-screenshot');
+        }
         
         setTimeout(() => {
             $('mainAppContainer')?.classList.remove('hide-for-screenshot');
             $('dockArea')?.classList.remove('hide-for-screenshot');
+            document.body.classList.remove('hide-icons-for-screenshot');
         }, 10000);
     };
 
     if($('btnHideMain')) $('btnHideMain').onclick = () => applyScreenshotMode(true, false);
     if($('btnHideDock')) $('btnHideDock').onclick = () => applyScreenshotMode(false, true);
+    if($('btnHideIcon')) $('btnHideIcon').onclick = () => applyScreenshotMode(false, false, true);
     if($('btnHideAll')) $('btnHideAll').onclick = () => applyScreenshotMode(true, true);
 
     $('closeOnboarding')?.addEventListener('click', () => $('onboardingModal')?.classList.remove('active'));
