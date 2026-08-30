@@ -24,7 +24,6 @@ let audioCtx = null;
 let appDatabase = {}, socialData = { links: { email: '', social_follow: '', plugin_shortcut: '' } }, langData = {};
 const basePath = '.';
 
-// [Yêu Cầu 1] Cập nhật giới hạn ứng dụng từ 12 lên 24
 const MAX_APPS = 24, MAX_DOCK_APPS = 3;
 let isDeleteMode = false, isAddingDock = false, isFastRenameMode = false;
 let searchTimeout = null, currentSearchLimit = 12, currentLocalLimit = 12, currentStore = 'vn', currentQuery = '';
@@ -131,7 +130,7 @@ function applyLanguage() {
     const btnInfoDetails = $('btnInfoDetails');
     if (btnInfoDetails) {
         btnInfoDetails.onclick = () => {
-            alert(langData?.dock_info?.app_version || "Snowboard v1.0");
+            alert(langData?.dock_info?.app_version || "Phiên bản hiện tại");
         };
     }
 
@@ -173,11 +172,10 @@ function applyLanguage() {
     setSafeText('txtDockDisable', langData?.effects?.dock?.disable || 'Tắt Dock');
     setSafeText('saveDockBtn', langData?.effects?.dock?.save || 'Lưu cấu hình');
     
-    // [Yêu Cầu 5] Ngôn ngữ cho tính năng Lưu hình nền
     setSafeText('lblScreenshotTitle', langData?.screenshot?.title || 'Lưu hình nền');
     setSafeText('btnHideMain', langData?.screenshot?.hide_main || 'Ẩn Khung chính');
     setSafeText('btnHideDock', langData?.screenshot?.hide_dock || 'Ẩn Dock');
-    setSafeText('btnHideAll', langData?.screenshot?.hide_all || 'Ẩn Toàn bộ');
+    setSafeText('btnHideAll', langData?.screenshot?.hide_all || 'Ẩn Toàn bộ (10s)');
 
     document.querySelectorAll('.lang-close').forEach(el => el.innerText = langData?.button?.close || 'Đóng');
     document.querySelectorAll('.lang-cancel').forEach(el => el.innerText = langData?.button?.cancel || 'Huỷ');
@@ -602,8 +600,29 @@ function initUI() {
     if($('bgShadowOffsetInput')) $('bgShadowOffsetInput').value = localStorage.getItem(ST_KEYS.bgOffset) || '30';
     if($('bgShadowOpacityInput')) $('bgShadowOpacityInput').value = localStorage.getItem(ST_KEYS.bgOpacity) || '8';
     
+    // [Fix] Gắn event click cho các nút hướng đổ bóng nền
     let savedBgDir = localStorage.getItem(ST_KEYS.bgDir) || 'bottom';
-    document.querySelectorAll('.bg-dir-btn').forEach(btn => { if (btn.dataset.dir === savedBgDir) btn.classList.add('active'); else btn.classList.remove('active'); });
+    document.querySelectorAll('.bg-dir-btn').forEach(btn => { 
+        if (btn.dataset.dir === savedBgDir) btn.classList.add('active'); 
+        else btn.classList.remove('active'); 
+        
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.bg-dir-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+        });
+    });
+
+    // [Fix] Gắn event click cho các nút hướng đổ bóng Icon
+    let savedDir = localStorage.getItem(ST_KEYS.dir) || 'bottom';
+    document.querySelectorAll('.dir-btn:not(.bg-dir-btn)').forEach(btn => {
+        if (btn.dataset.dir === savedDir) btn.classList.add('active');
+        else btn.classList.remove('active');
+
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.dir-btn:not(.bg-dir-btn)').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+        });
+    });
 
     if($('colorMain')) $('colorMain').addEventListener('input', e => document.documentElement.style.setProperty('--bg-main', e.target.value));
     if($('colorContainer')) $('colorContainer').addEventListener('input', e => document.documentElement.style.setProperty('--bg-container', e.target.value + 'cc'));
@@ -657,13 +676,11 @@ function initUI() {
         if(btn.id.includes('close') || btn.id.includes('Close')) btn.onclick = (e) => e.target.closest('.modal-overlay')?.classList.remove('active');
     });
 
-    // [Yêu Cầu 5] Xử lý sự kiện 3 nút chức năng "Lưu hình nền"
     const applyScreenshotMode = (hideMain, hideDock) => {
         $('settingsModal')?.classList.remove('active');
         if (hideMain) $('mainAppContainer')?.classList.add('hide-for-screenshot');
         if (hideDock) $('dockArea')?.classList.add('hide-for-screenshot');
         
-        // Tự động khôi phục giao diện sau đúng 10 giây (10,000ms)
         setTimeout(() => {
             $('mainAppContainer')?.classList.remove('hide-for-screenshot');
             $('dockArea')?.classList.remove('hide-for-screenshot');
@@ -674,7 +691,6 @@ function initUI() {
     if($('btnHideDock')) $('btnHideDock').onclick = () => applyScreenshotMode(false, true);
     if($('btnHideAll')) $('btnHideAll').onclick = () => applyScreenshotMode(true, true);
 
-    // Modal chống sập
     $('closeOnboarding')?.addEventListener('click', () => $('onboardingModal')?.classList.remove('active'));
     $('renameCancelBtn')?.addEventListener('click', closeRenameModal);
     $('renameOkBtn')?.addEventListener('click', () => {
